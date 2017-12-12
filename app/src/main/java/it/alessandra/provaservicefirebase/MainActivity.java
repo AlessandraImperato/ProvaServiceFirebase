@@ -1,5 +1,8 @@
 package it.alessandra.provaservicefirebase;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -11,6 +14,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Random;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,17 +22,20 @@ public class MainActivity extends AppCompatActivity {
     private Button bRegistra;
     private static FirebaseDatabase database;
     private DatabaseReference databaseReference;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editUser = findViewById(R.id.edituser);
-        bRegistra = findViewById(R.id.breg);
+        editUser = (EditText)findViewById(R.id.edituser);
+        bRegistra = (Button)findViewById(R.id.breg);
 
         database = FirebaseDatabase.getInstance();
         databaseReference = database.getReferenceFromUrl("https://provaservicefirebase.firebaseio.com/Users");
+
+        preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         bRegistra.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -37,16 +44,15 @@ public class MainActivity extends AppCompatActivity {
                 if(username.equals("")){
                     Toast.makeText(getApplicationContext(),"Inserisci l'username",Toast.LENGTH_LONG).show();
                 }else{
-                    databaseReference.child(username).setValue(username);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString("USER",username);
+                    editor.commit();
+                    databaseReference.child(username).child("id").setValue(username);
+                    Intent i = new Intent(getApplicationContext(),SetNotificationActivity.class);
+                    startActivity(i);
                     Toast.makeText(getApplicationContext(),"Registrato",Toast.LENGTH_LONG).show();
                 }
             }
         });
-    }
-
-    public int randomPosition(){
-        Random random = new Random();
-        int position = random.nextInt(100);
-        return position;
     }
 }
